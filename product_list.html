@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Каталог товаров</title>
+</head>
+<body>
+    <h1>Каталог товаров</h1>
+
+    <p>
+        <a href="{% url 'bboard:product_create' %}">Добавить товар</a>
+    </p>
+
+    <ul>
+        {% for p in products %}
+            <li>
+                <!-- Ссылка на редактирование товара -->
+                <a href="{% url 'bboard:product_edit' p.pk %}">
+                    <strong>{{ p.name }}</strong>
+                </a><br>
+
+                <!-- Описание -->
+                {{ p.description }}<br>
+
+                <!-- Картинка, если загружена -->
+                {% if p.image %}
+                    <img src="{{ p.image.url }}" width="150">
+                {% endif %}
+
+                <!-- Кнопка удаления -->
+                <form method="post" action="{% url 'bboard:product_delete' p.pk %}">
+                    {% csrf_token %}
+                    <button type="submit">Удалить</button>
+                </form>
+            </li>
+        {% empty %}
+            <li>Товаров пока нет.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
+
+
+
+

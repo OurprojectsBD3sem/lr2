@@ -1,138 +1,40 @@
 from django.db import models
-from myproject.myproject import settings
-from django.core import validators
 
+class Bb(models.Model):
+    title = models.CharField(max_length=50, verbose_name='Товар')
+    content = models.TextField(verbose_name='Описание')
+    price = models.FloatField(verbose_name='Цена')
+    published = models.DateTimeField(auto_now_add=True, db_index=True,
+verbose_name='Опубликовано')
+    rubric = models.ForeignKey('Rubric', null=True,
+                               on_delete=models.PROTECT, verbose_name='Рубрика')
+class Meta:
+    verbose_name_plural = 'Объявления'
+    verbose_name = 'Объявление'
+    ordering = ['-published']
 
-# Две модели со связью один с одним
-class Person(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-
+class Rubric(models.Model):
+    name = models.CharField(max_length=20, db_index=True,
+                                        verbose_name='Название')
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return self.name
+class Meta:
+    verbose_name_plural = 'Рубрики'
+    verbose_name = 'Рубрика'
+    ordering = ['name']
 
-
-class Passport(models.Model):
-    person = models.OneToOneField(
-        Person,
-        on_delete=models.CASCADE,
-        related_name='passport'
-    )
-    number = models.CharField(max_length=20, unique=True)
-    issued_at = models.DateField()
-
-    def __str__(self):
-        return f'Паспорт {self.number}'
-
-# Связь один с многими
-class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+class Product(models.Model):
+    name = models.CharField('Название', max_length=200)
+    description = models.TextField('Описание', blank=True)
+    image = models.ImageField('Картинка', upload_to='products/', blank=True, null=True)
 
     def __str__(self):
         return self.name
 
-
-class Ad(models.Model):
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.PROTECT,
-        related_name='ads'
-    )
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='ads'
-    )
+class ProductMeta(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='meta')
+    name = models.CharField('Параметр', max_length=50)
+    value = models.CharField('Значение', max_length=200, blank=True)
 
     def __str__(self):
-        return self.title
-
-class Tag(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
-
-
-class Ad(models.Model):
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-
-    tags = models.ManyToManyField(
-        Tag,
-        related_name='ads',
-        blank=True
-    )
-
-    def __str__(self):
-        return self.title
-
-# Валидаторы
-class Ad(models.Model):
-    # Заголовок: от 4 до 50 символов
-    title = models.CharField(
-        max_length=50,
-        validators=[
-            validators.MinLengthValidator(
-                4,
-                message='Заголовок должен быть не короче 4 символов.'
-            ),
-            validators.ProhibitNullCharactersValidator()
-        ],
-        verbose_name='Заголовок'
-    )
-
-    # Цена: минимум 0, максимум 1 000 000, кратна 10
-    price = models.IntegerField(
-        validators=[
-            validators.MinValueValidator(
-                0,
-                message='Цена не может быть меньше 0.'
-            ),
-            validators.MaxValueValidator(
-                1_000_000,
-                message='Цена не может быть больше 1 000 000.'
-            ),
-            validators.StepValueValidator(
-                10,
-                message='Цена должна быть кратна 10.'
-            ),
-        ],
-        verbose_name='Цена'
-    )
-
-    # E‑mail продавца с EmailValidator
-    contact_email = models.EmailField(
-        validators=[
-            validators.EmailValidator(
-                message='Укажите корректный e‑mail.'
-            )
-        ],
-        verbose_name='E‑mail для связи'
-    )
-
-    # URL сайта продавца с URLValidator
-    website = models.URLField(
-        blank=True,
-        validators=[
-            validators.URLValidator(
-                schemes=['http', 'https'],
-                message='Укажите корректный URL, начинающийся с http или https.'
-            )
-        ],
-        verbose_name='Сайт продавца'
-    )
-
-    # Слаг объявления (часть URL) с validate_slug
-    slug = models.SlugField(
-        unique=True,
-        validators=[validators.validate_slug],
-        verbose_name='Слаг'
-    )
-
-    def __str__(self):
-        return self.title
+        return f'{self.name}: {self.value}'

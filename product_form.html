@@ -1,0 +1,40 @@
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <h3>Параметры</h3>
+    <div id="form-container">
+        {{ formset.management_form }}
+        {% for f in formset %}
+            <div class="meta-form">
+                {{ f.id }}
+                {{ f.name.label_tag }} {{ f.name }}
+                {{ f.value.label_tag }} {{ f.value }}
+                {% if formset.can_delete %}
+                    {{ f.DELETE }} Удалить
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button id="add-form">Добавить параметр</button>
+    </div>
+
+    <button type="submit">Сохранить</button>
+</form>
+
+<script>
+    let container = document.querySelector('#form-container');
+    let addButton = document.querySelector('#add-form');
+    let totalForms = document.querySelector('#id_form-TOTAL_FORMS');
+    let formNum = document.querySelectorAll('.meta-form').length - 1;
+
+    addButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        let newForm = document.querySelectorAll('.meta-form')[0].cloneNode(true);
+        let formRegex = RegExp('form-(\\d+)-', 'g');
+        formNum++;
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`);
+        newForm.querySelectorAll('input[type="text"]').forEach(inp => inp.value = '');
+        container.insertBefore(newForm, addButton);
+        totalForms.value = formNum + 1;
+    });
+</script>
