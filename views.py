@@ -9,6 +9,8 @@ from django.views import View
 from .models import Product
 from .forms import ProductForm, ProductMetaFormSet
 from django.shortcuts import render, redirect, get_object_or_404
+import asyncio
+from django.http import JsonResponse
 
 
 def index(request):
@@ -90,3 +92,7 @@ class ProductDeleteView(View):
         product = get_object_or_404(Product, pk=pk)
         product.delete()          # удалит и связанные ProductMeta по CASCADE
         return redirect('bboard:product_list')
+
+async def async_test(request):
+    await asyncio.sleep(1)  # имитация долгой операции
+    return JsonResponse({'status': 'ok', 'message': 'async view works'})
